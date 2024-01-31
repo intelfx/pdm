@@ -1336,7 +1336,7 @@ Most of the time, you can just add any transient constraints to the <code>depend
 <span class="normal">2</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">[tool.pdm.resolution]</span>
 <span class="n">excludes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s">&quot;requests&quot;</span><span class="p">]</span>
 </code></pre></div></td></tr></table></div>
-<p>With this config, <code>requests</code> will be locked in the lockfile, and its dependencies such as <code>urllib3</code> and <code>idna</code> will also not show up in the resolution result, if not depended on by other packages. The installer will not be able to pick them up either.</p>
+<p>With this config, <code>requests</code> will not be locked in the lockfile, and its dependencies such as <code>urllib3</code> and <code>idna</code> will also not show up in the resolution result, if not depended on by other packages. The installer will not be able to pick them up either.</p>
 <h2 id="passing-constant-arguments-to-every-pdm-invocation">Passing constant arguments to every pdm invocation<a class="headerlink" href="#passing-constant-arguments-to-every-pdm-invocation" title="Permanent link">#</a></h2>
 <p><em>New in version 2.7.0</em></p>
 <p>You can add extra options passed to individual pdm commands by <code>tool.pdm.options</code> configuration:</p>
