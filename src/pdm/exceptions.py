@@ -84,3 +84,11 @@ class NoPythonVersion(PdmUsageError):
 
 class BuildError(PdmException, RuntimeError):
     pass
+
+
+class ImportNotPossible(PdmException):
+    pass
+
+
+class ImportCancelled(PdmException):
+    pass
