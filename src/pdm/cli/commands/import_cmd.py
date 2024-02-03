@@ -29,11 +29,18 @@ class Command(BaseCommand):
             choices=FORMATS.keys(),
             help="Specify the file format explicitly",
         )
+        parser.add_argument(
+            "-k",
+            "--keep-backend",
+            default=False,
+            action="store_true",
+            help="Keep the existing build backend",
+        )
         parser.add_argument("filename", help="The file name")
         parser.set_defaults(search_parent=False)
 
     def handle(self, project: Project, options: argparse.Namespace) -> None:
-        self.do_import(project, options.filename, options.format, options)
+        self.do_import(project, options.filename, options.format, options, not options.keep_backend)
 
     @staticmethod
     def do_import(
@@ -49,6 +56,7 @@ class Command(BaseCommand):
         :param filename: the file name
         :param format: the file format, or guess if not given.
         :param options: other options parsed to the CLI.
+        :param reset_backend: whether to reconfigure project's build-backend to use pdm
         """
         import tomlkit
 
