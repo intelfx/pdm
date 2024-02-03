@@ -59,6 +59,11 @@ def convert(project: Project, filename: Path, options: Any | None) -> tuple[Mapp
     if entry_points:
         metadata["entry-points"] = entry_points
 
+    metadata["-build-backend"] = "setuptools.build_meta"
+    metadata["-build-requires"] = [
+        "setuptools",
+    ] + parsed.get("setup_requires", [])
+
     return metadata, settings
 
 
