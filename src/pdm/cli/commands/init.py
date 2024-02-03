@@ -330,4 +330,4 @@ class Command(BaseCommand):
         if self.interactive:
             from pdm.cli import actions
 
-            actions.ask_for_import(project)
+            actions.import_interactively(project)

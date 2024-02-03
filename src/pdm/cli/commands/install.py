@@ -68,7 +68,7 @@ class Command(BaseCommand):
         from pdm.cli import actions
 
         if not project.pyproject.is_valid and termui.is_interactive():
-            actions.ask_for_import(project)
+            actions.import_interactively(project)
 
         if options.plugins:
             return self.install_plugins(project)
