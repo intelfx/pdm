@@ -329,4 +329,4 @@ class Command(BaseCommand):
         project.maybe_add_to_workspace()
         project.core.ui.echo("Project is initialized successfully", style="primary")
         if self.interactive:
-            actions.ask_for_import(project)
+            actions.import_interactively(project)
