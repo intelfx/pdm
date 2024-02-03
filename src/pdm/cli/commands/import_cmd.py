@@ -151,4 +151,11 @@ class Command(BaseCommand):
                 "The project's [primary]requires-python[/] has been set to [primary]>="
                 f"{python_version}[/]. You can change it later if necessary."
             )
+
+        if "version" not in pyproject["project"] and \
+                {req_get_stem(req) for req in pyproject["build-system"]["requires"]} & {"setuptools_scm"}:
+            merge_dictionary(pyproject["project"], {
+                "dynamic": ["version"]
+            })
+
         project.pyproject.write()
