@@ -226,5 +226,7 @@ def test_convert_setup_py_project(project):
         "requires-python": ">=3.5",
         "dependencies": ['importlib-metadata; python_version<"3.8"', "requests"],
         "scripts": {"mycli": "mymodule:main"},
+        "-build-backend": "setuptools.build_meta",
+        "-build-requires": ['setuptools'],
     }
     assert settings == {"package-dir": "src"}
