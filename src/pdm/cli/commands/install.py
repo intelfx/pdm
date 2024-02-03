@@ -64,7 +64,7 @@ class Command(BaseCommand):
 
     def handle(self, project: Project, options: argparse.Namespace) -> None:
         if not project.pyproject.is_valid and termui.is_interactive():
-            actions.ask_for_import(project)
+            actions.import_interactively(project)
 
         if options.plugins:
             return self.install_plugins(project)
