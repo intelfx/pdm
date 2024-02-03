@@ -188,23 +188,28 @@ class Project:
             return
         python_file.write_text(value, "utf-8")
 
-    def resolve_interpreter(self) -> PythonInfo:
+    def resolve_interpreter(self, *, in_import: bool = False) -> PythonInfo:
         """Get the Python interpreter path."""
         from pdm.cli.commands.venv.utils import iter_venvs
         from pdm.models.venv import get_venv_python
 
-        def match_version(python: PythonInfo) -> bool:
+        def match_version(python: PythonInfo, in_import: bool) -> bool:
+            if in_import and self.python_requires is None:
+                return python.valid
             return python.valid and self.python_requires.contains(python.version, True)
 
         def note(message: str) -> None:
             if not self.is_global:
                 self.core.ui.info(message)
 
+        if not in_import and self.python_requires is None:
+            raise PdmUsageError(f"Project has no requires-python, unable to continue.")
+
         config = self.config
         saved_path = self._saved_python
         if saved_path and not os.getenv("PDM_IGNORE_SAVED_PYTHON"):
             python = PythonInfo.from_path(saved_path)
-            if match_version(python):
+            if match_version(python, in_import):
                 return python
             else:
                 note(
@@ -219,7 +224,7 @@ class Project:
             # We don't auto reuse conda's base env since it may cause breakage when removing packages.
             if venv_in_env and not is_conda_base():
                 python = PythonInfo.from_path(get_venv_python(Path(venv_in_env)))
-                if match_version(python):
+                if match_version(python, in_import):
                     note(
                         f"Inside an active virtualenv [success]{venv_in_env}[/], reusing it.\n"
                         "Set env var [success]PDM_IGNORE_ACTIVE_VENV[/] to ignore it."
@@ -228,12 +233,12 @@ class Project:
             # otherwise, get a venv associated with the project
             for _, venv in iter_venvs(self):
                 python = PythonInfo.from_path(venv.interpreter)
-                if match_version(python):
+                if match_version(python, in_import):
                     note(f"Virtualenv [success]{venv.root}[/] is reused.")
                     self.python = python
                     return python
 
-            if not self.root.joinpath("__pypackages__").exists():
+            if not in_import and not self.root.joinpath("__pypackages__").exists():
                 self.core.ui.warn(
                     f"Project requires a python version of {self.python_requires}, "
                     f"The virtualenv is being created for you as it cannot be matched to the right version."
@@ -244,12 +249,14 @@ class Project:
                 return self.python
 
         for py_version in self.find_interpreters():
-            if match_version(py_version):
-                if config.get("python.use_venv"):
+            if match_version(py_version, in_import):
+                if not in_import and config.get("python.use_venv"):
                     note("[success]__pypackages__[/] is detected, using the PEP 582 mode")
                 self.python = py_version
                 return py_version
 
+        if in_import and self.python_requires is None:
+            raise NoPythonVersion(f"No valid Python is found on the system.")
         raise NoPythonVersion(f"No Python that satisfies {self.python_requires} is found on the system.")
 
     def get_environment(self) -> BaseEnvironment:
