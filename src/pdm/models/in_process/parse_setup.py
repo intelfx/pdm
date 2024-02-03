@@ -18,6 +18,9 @@ def _parse_setup_cfg(path: str) -> Dict[str, Any]:
     if "name" in metadata:
         result["name"] = metadata["name"]
 
+    if "version" in metadata:
+        result["version"] = metadata["version"]
+
     if "description" in metadata:
         result["description"] = metadata["description"]
 
