@@ -245,4 +245,4 @@ class Command(BaseCommand):
         self.do_init(project, options=options)
         project.core.ui.echo("Project is initialized successfully", style="primary")
         if self.interactive:
-            actions.ask_for_import(project)
+            actions.import_interactively(project)
