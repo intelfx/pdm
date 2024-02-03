@@ -70,6 +70,9 @@ def _parse_setup_cfg(path: str) -> dict[str, Any]:
         if "python_requires" in options:
             result["python_requires"] = options["python_requires"]
 
+        if "setup_requires" in options:
+            result["setup_requires"] = options["setup_requires"].strip().splitlines()
+
         if "install_requires" in options:
             result["install_requires"] = options["install_requires"].strip().splitlines()
 
