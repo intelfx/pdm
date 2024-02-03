@@ -3,8 +3,9 @@ from __future__ import annotations
 import argparse
 import re
 
+from pdm.cli import actions
 from pdm.cli.commands.base import BaseCommand
-from pdm.exceptions import PdmUsageError
+from pdm.exceptions import PdmUsageError, ImportNotPossible, ImportCancelled
 from pdm.formats import FORMATS
 from pdm.project import Project
 
@@ -13,8 +14,11 @@ class Command(BaseCommand):
     """Import project metadata from other formats"""
 
     name = "import"
+    parser = None
 
     def add_arguments(self, parser: argparse.ArgumentParser) -> None:
+        # ugly but works
+        self.parser = parser
         parser.add_argument(
             "-d",
             "--dev",
@@ -36,11 +40,22 @@ class Command(BaseCommand):
             action="store_true",
             help="Keep the existing build backend",
         )
-        parser.add_argument("filename", help="The file name")
+        parser.add_argument("filename", nargs='?', help="The file name")
         parser.set_defaults(search_parent=False)
 
     def handle(self, project: Project, options: argparse.Namespace) -> None:
-        self.do_import(project, options.filename, options.format, options, not options.keep_backend)
+        if options.filename is None:
+            # argparse does not support conditional requirements -- sunrise by hand
+            if options.format is not None:
+                self.parser.error("--format and filename must be used together or not at all")
+            try:
+                options.format, options.filename = actions.ask_for_import(project)
+            except ImportNotPossible:
+                raise PdmUsageError("Nothing to import")
+            except ImportCancelled:
+                return
+
+        self.do_import(project, str(options.filename), options.format, options, not options.keep_backend)
 
     @staticmethod
     def do_import(
