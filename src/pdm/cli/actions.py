@@ -7,6 +7,7 @@ import json
 import os
 import sys
 import textwrap
+from pathlib import Path
 from typing import Collection, Iterable, cast
 
 from resolvelib.reporters import BaseReporter
@@ -25,7 +26,7 @@ from pdm.cli.utils import (
     set_env_in_reg,
 )
 from pdm.environments import BareEnvironment
-from pdm.exceptions import PdmException, PdmUsageError, ProjectError
+from pdm.exceptions import PdmException, PdmUsageError, ProjectError, ImportNotPossible, ImportCancelled
 from pdm.models.candidates import Candidate
 from pdm.models.repositories import LockedRepository
 from pdm.models.requirements import Requirement, parse_requirement
@@ -238,13 +239,12 @@ def do_sync(
         hooks.try_emit("post_install", candidates=candidates, dry_run=dry_run)
 
 
-def ask_for_import(project: Project) -> None:
+def ask_for_import(project: Project) -> tuple[str, Path]:
     """Show possible importable files and ask user to decide"""
-    from pdm.cli.commands.import_cmd import Command as ImportCommand
 
     importable_files = list(find_importable_files(project))
     if not importable_files:
-        return
+        raise ImportNotPossible()
     project.core.ui.echo("Found following files from other formats that you may import:", style="primary")
     for i, (key, filepath) in enumerate(importable_files):
         project.core.ui.echo(f"{i}. [success]{filepath.as_posix()}[/] ({key})")
@@ -256,8 +256,17 @@ def ask_for_import(project: Project) -> None:
         show_choices=False,
     )
     if int(choice) == len(importable_files):
+        raise ImportCancelled()
+    return importable_files[int(choice)]
+
+
+def import_interactively(project: Project) -> None:
+    from pdm.cli.commands.import_cmd import Command as ImportCommand
+
+    try:
+        key, filepath = ask_for_import(project)
+    except (ImportNotPossible, ImportCancelled):
         return
-    key, filepath = importable_files[int(choice)]
     ImportCommand.do_import(project, str(filepath), key, reset_backend=False)
 
 
