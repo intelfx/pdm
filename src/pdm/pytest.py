@@ -54,6 +54,7 @@ from pdm.core import Core
 from pdm.environments import BaseEnvironment, PythonEnvironment
 from pdm.exceptions import CandidateInfoNotFound
 from pdm.installers.installers import install_wheel
+from pdm.models.auth import keyring
 from pdm.models.backends import DEFAULT_BACKEND
 from pdm.models.candidates import Candidate
 from pdm.models.repositories import BaseRepository, CandidateMetadata
@@ -420,6 +421,11 @@ def project_no_init(
     pythonpath = remove_pep582_path_from_pythonpath(pythonpath)
     if pythonpath:
         monkeypatch.setenv("PYTHONPATH", pythonpath)
+    # disable keyring support to avoid leaking user keyring into tests
+    # when tests are run on a developer workstation
+    mocker.patch("unearth.auth.get_keyring_provider", return_value=None)
+    monkeypatch.setattr(keyring, "provider", None)
+    monkeypatch.setattr(keyring, "enabled", False)
     return p
 
 
