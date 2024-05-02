@@ -147,7 +147,7 @@ def test_venv_activate_custom_prompt(pdm, mocker, project):
     result = pdm(["venv", "create"], obj=project)
     assert result.exit_code == 0, result.stderr
     creator.assert_called_once_with(
-        None, [], False, False, prompt=project.project_config["venv.prompt"], with_pip=False
+        None, [], False, False, prompt=project.project_config["venv.prompt"], with_pip=False, where=None
     )
 
 
