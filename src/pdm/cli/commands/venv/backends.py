@@ -116,8 +116,11 @@ class Backend(abc.ABC):
         prompt: str | None = None,
         with_pip: bool = False,
         venv_name: str | None = None,
+        where: str | None = None,
     ) -> Path:
-        if in_project:
+        if where is not None:
+            location = Path(where)
+        elif in_project:
             location = self.project.root / ".venv"
         else:
             location = self.get_location(name, venv_name)
