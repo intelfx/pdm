@@ -37,6 +37,7 @@ class CreateCommand(BaseCommand):
             help="Recreate if the virtualenv already exists",
         )
         parser.add_argument("-n", "--name", help="Specify the name of the virtualenv")
+        parser.add_argument("-p", "--path", help="Where to create the virtualenv")
         parser.add_argument("--with-pip", action="store_true", help="Install pip with the virtualenv")
         parser.add_argument(
             "python",
@@ -61,5 +62,6 @@ class CreateCommand(BaseCommand):
                 in_project,
                 prompt=project.config["venv.prompt"],
                 with_pip=options.with_pip or project.config["venv.with_pip"],
+                where=options.path,
             )
         project.core.ui.echo(f"Virtualenv [success]{path}[/] is created successfully")
