@@ -201,7 +201,7 @@ class Project:
             return
         python_file.write_text(value, "utf-8")
 
-    def resolve_interpreter(self) -> PythonInfo:
+    def resolve_interpreter(self, *, in_import: bool = False) -> PythonInfo:
         """Get the Python interpreter path."""
         from pdm.cli.commands.venv.utils import iter_venvs
         from pdm.models.venv import get_venv_python
@@ -218,6 +218,7 @@ class Project:
                 return False
             return is_path_relative_to(python.executable, venv)
 
+        python = None
         config = self.config
         saved_path = self._saved_python
         if saved_path and not os.getenv("PDM_IGNORE_SAVED_PYTHON"):
@@ -231,6 +232,7 @@ class Project:
                 )
             self._saved_python = None  # Clear the saved path if it doesn't match
 
+        # Try to detect or create a virtualenv, if enabled
         if config.get("python.use_venv") and not self.is_global:
             # Resolve virtual environments from env-vars
             ignore_active_venv = ensure_boolean(os.getenv("PDM_IGNORE_ACTIVE_VENV"))
@@ -249,23 +251,36 @@ class Project:
                 python = PythonInfo.from_path(venv.interpreter)
                 if match_version(python) and not (ignore_active_venv and is_active_venv(python)):
                     note(f"Virtualenv [success]{venv.root}[/] is reused.")
-                    self.python = python
+                    if not in_import:
+                        self.python = python
                     return python
-
-            if not self.root.joinpath("__pypackages__").exists():
-                self.core.ui.warn(
-                    f"Project requires a python version of {self.python_requires}, "
-                    f"The virtualenv is being created for you as it cannot be matched to the right version."
-                )
+            # otherwise, create a venv (except if in PEP 582 mode)
+            if not in_import and not self.root.joinpath("__pypackages__").exists():
+                # warn the user if we found some virtualenv, but it did not match
+                # TODO: tighten up this check to avoid spurious warnings in corner cases
+                if python is not None:
+                    self.core.ui.warn(
+                        f"Project requires a python version of {self.python_requires}, "
+                        f"The virtualenv is being created for you as it cannot be matched to the right version."
+                    )
                 note("python.use_venv is on, creating a virtualenv for this project...")
                 venv_path = self._create_virtualenv()
                 self.python = PythonInfo.from_path(get_venv_python(venv_path))
                 return self.python
 
-        if self.root.joinpath("__pypackages__").exists() or not config["python.use_venv"] or self.is_global:
+        # If we refused to detect or create a virtualenv for any reason above,
+        # try to search for a non-virtualenv interpreter otherwise.
+        if (
+                in_import
+                or not config.get("python.use_venv")
+                or self.is_global
+                or self.root.joinpath("__pypackages__").exists()
+        ):
             for py_version in self.iter_interpreters(filter_func=match_version):
-                note("[success]__pypackages__[/] is detected, using the PEP 582 mode")
-                self.python = py_version
+                if self.root.joinpath("__pypackages__").exists():
+                    note("[success]__pypackages__[/] is detected, using PEP 582 mode")
+                if not in_import:
+                    self.python = py_version
                 return py_version
 
         raise NoPythonVersion(f"No Python that satisfies {self.python_requires} is found on the system.")
