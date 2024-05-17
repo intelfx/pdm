@@ -260,6 +260,12 @@ class Core:
 
         try:
             self.handle(project, options)
+        except KeyboardInterrupt as e:
+            self.ui.echo(
+                f"[error][Interrupted, exiting][/]",  # type: ignore[union-attr]
+                err=True,
+            )
+            sys.exit(1)
         except Exception:
             etype, err, traceback = sys.exc_info()
             should_show_tb = not isinstance(err, PdmUsageError)
