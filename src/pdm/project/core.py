@@ -307,8 +307,8 @@ class Project:
                 return python
             else:
                 note(
-                    "The saved Python interpreter doesn't match the project's requirement. "
-                    "Trying to find another one."
+                    "The saved Python interpreter does not satisfy the project's requirements "
+                    f"({self.python_requires or '*'}), ignoring it."
                 )
             self._saved_python = None  # Clear the saved path if it doesn't match
 
@@ -321,16 +321,18 @@ class Project:
             if not ignore_active_venv and venv_in_env and not is_conda_base():
                 python = PythonInfo.from_path(get_venv_python(Path(venv_in_env)))
                 if match_version(python):
-                    note(
-                        f"Inside an active virtualenv [success]{venv_in_env}[/], reusing it.\n"
-                        "Set env var [success]PDM_IGNORE_ACTIVE_VENV[/] to ignore it."
+                    self.core.ui.info(
+                        f"Detected active virtualenv [success]{venv_in_env}[/], reusing it.\n"
+                        "Set environment variable [success]PDM_IGNORE_ACTIVE_VENV[/] to suppress this behavior."
                     )
                     return python
             # otherwise, get a venv associated with the project
             for _, venv in iter_venvs(self):
                 python = PythonInfo.from_path(venv.interpreter)
                 if match_version(python) and not (ignore_active_venv and is_active_venv(python)):
-                    note(f"Virtualenv [success]{venv.root}[/] is reused.")
+                    self.core.ui.info(
+                        f"Found project virtualenv [success]{venv.root}[/], reusing it."
+                    )
                     if not in_import:
                         self.python = python
                     return python
@@ -338,12 +340,14 @@ class Project:
             if not in_import and not self.root.joinpath("__pypackages__").exists():
                 # warn the user if we found some virtualenv, but it did not match
                 # TODO: tighten up this check to avoid spurious warnings in corner cases
-                if python is not None:
+                if python is not None and self.python_requires:
                     self.core.ui.warn(
-                        f"Project requires a python version of {self.python_requires}, "
-                        f"The virtualenv is being created for you as it cannot be matched to the right version."
+                        "Could not find a virtualenv matching the project's requirements "
+                        f"({self.python_requires or '*'}), creating a new one."
                     )
-                note("python.use_venv is on, creating a virtualenv for this project...")
+                self.core.ui.info(
+                    "[success]python.use_venv[/] is on, creating a virtualenv for this project..."
+                )
                 venv_path = self._create_virtualenv()
                 self.python = PythonInfo.from_path(get_venv_python(venv_path))
                 return self.python
@@ -358,12 +362,16 @@ class Project:
         ):
             for py_version in self.iter_interpreters(filter_func=match_version):
                 if self.root.joinpath("__pypackages__").exists():
-                    note("[success]__pypackages__[/] is detected, using PEP 582 mode")
+                    note(
+                        "[success]__pypackages__[/] is detected, using PEP 582 mode"
+                    )
                 if not in_import:
                     self.python = py_version
                 return py_version
 
-        raise NoPythonVersion(f"No Python that satisfies {self.python_requires} is found on the system.")
+        raise NoPythonVersion(
+            f"No Python that satisfies {self.python_requires or '*'} is found on the system."
+        )
 
     def get_environment(self) -> BaseEnvironment:
         from pdm.environments import PythonEnvironment, PythonLocalEnvironment
