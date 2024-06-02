@@ -537,3 +537,13 @@ def convert_to_datetime(value: str) -> datetime:
     if "T" in value:
         return datetime.fromisoformat(value.replace("Z", "+00:00"))
     return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+
+
+def strtobool(val):
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f"invalid boolean value: {val!r}")
