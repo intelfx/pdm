@@ -257,12 +257,8 @@ class Core:
 
         try:
             self.handle(project, options)
-        except KeyboardInterrupt as e:
-            self.ui.echo(
-                f"[error][Interrupted, exiting][/]",  # type: ignore[union-attr]
-                err=True,
-            )
-            sys.exit(1)
+        except KeyboardInterrupt:
+            raise
         except Exception:
             etype, err, traceback = sys.exc_info()
             should_show_tb = not isinstance(err, PdmUsageError)
@@ -347,6 +343,13 @@ class Core:
 
 def main(args: list[str] | None = None) -> None:
     """The CLI entry function"""
-    core = Core()
-    with core.exit_stack:
-        return core.main(args or sys.argv[1:])
+    try:
+        core = Core()
+        with core.exit_stack:
+            return core.main(args or sys.argv[1:])
+    except KeyboardInterrupt:
+        termui.UI.instance().echo(
+            rf"[error]\[Interrupted, exiting][/]",  # type: ignore[union-attr]
+            err=True,
+        )
+        sys.exit(1)
