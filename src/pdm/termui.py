@@ -40,6 +40,8 @@ DEFAULT_THEME = {
 rich.reconfigure(highlight=False, theme=Theme(DEFAULT_THEME))
 _err_console = Console(stderr=True, theme=Theme(DEFAULT_THEME))
 
+_instance: UI | None = None
+
 
 def is_interactive(console: Console | None = None) -> bool:
     """Check if the terminal is run under interactive mode"""
@@ -165,6 +167,15 @@ class UI:
         self.verbosity = verbosity
         self.exit_stack = exit_stack or contextlib.ExitStack()
         self.log_dir: str | None = None
+        global _instance
+        _instance = self
+
+    @classmethod
+    def instance(cls) -> 'UI':
+        global _instance
+        if _instance is None:
+            _instance = cls()
+        return _instance
 
     def set_verbosity(self, verbosity: int) -> None:
         self.verbosity = Verbosity(verbosity)
