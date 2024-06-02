@@ -542,6 +542,15 @@ def convert_to_datetime(value: str) -> datetime:
     return datetime.strptime(value, "%Y-%m-%d").replace(tzinfo=timezone.utc)
 
 
+def strtobool(val):
+    val = val.lower()
+    if val in ('y', 'yes', 't', 'true', 'on', '1'):
+        return True
+    elif val in ('n', 'no', 'f', 'false', 'off', '0'):
+        return False
+    else:
+        raise ValueError(f"invalid boolean value: {val!r}")
+
 def get_all_installable_python_versions(build_dir: bool = False) -> list[PythonVersion]:
     """Returns all installable standalone Python interpreter versions from @indygreg
 
