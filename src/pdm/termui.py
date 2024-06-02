@@ -113,7 +113,6 @@ class Emoji:
         SUCC = "v"
         FAIL = "x"
         LOCK = " "
-        CONGRAT = " "
         POPPER = " "
         ELLIPSIS = "..."
         ARROW_SEPARATOR = ">"
