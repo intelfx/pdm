@@ -17,6 +17,7 @@ from rich.table import Table
 from rich.theme import Theme
 
 from pdm.exceptions import PDMWarning
+from pdm.utils import strtobool
 
 if TYPE_CHECKING:
     from typing import Any, Iterator, Sequence
@@ -55,6 +56,14 @@ def is_legacy_windows(console: Console | None = None) -> bool:
     if console is None:
         console = rich.get_console()
     return console.legacy_windows
+
+def is_emoji_enabled() -> bool:
+    try:
+        return strtobool(os.environ['PDM_USE_EMOJI'])
+    except KeyError:
+        return True
+    except ValueError:
+        raise ValueError(f"invalid $PDM_USE_EMOJI: {os.environ['PDM_USE_EMOJI']!r}")
 
 
 def style(text: str, *args: str, style: str | None = None, **kwargs: Any) -> str:
@@ -114,6 +123,13 @@ class Emoji:
         POPPER = " "
         ELLIPSIS = "..."
         ARROW_SEPARATOR = ">"
+    elif not is_emoji_enabled():
+        SUCC = "✔"
+        FAIL = "✖"
+        LOCK = ""
+        POPPER = ""
+        ELLIPSIS = "…"
+        ARROW_SEPARATOR = "➤"
     else:
         SUCC = ":heavy_check_mark:"
         FAIL = ":heavy_multiplication_x:"
