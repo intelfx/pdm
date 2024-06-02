@@ -274,12 +274,8 @@ class Core:
 
         try:
             self.handle(project, options)
-        except KeyboardInterrupt as e:
-            self.ui.echo(
-                f"[error][Interrupted, exiting][/]",  # type: ignore[union-attr]
-                err=True,
-            )
-            sys.exit(1)
+        except KeyboardInterrupt:
+            raise
         except Exception:
             etype, err, traceback = sys.exc_info()
             should_show_tb = not isinstance(err, PdmUsageError) or self.ui.verbosity > termui.Verbosity.DETAIL
@@ -404,12 +400,19 @@ def main(args: list[str] | None = None) -> None:
 
     from pdm.cli.completions import configure_parser
 
-    core = Core()
-    configure_parser(core)
-    argcomplete.autocomplete(
-        core.parser,
-        always_complete_options=False,
-        default_completer=SuppressCompleter(),
-    )
-    with core.exit_stack:
-        return core.main(args or sys.argv[1:])
+    try:
+        core = Core()
+        configure_parser(core)
+        argcomplete.autocomplete(
+            core.parser,
+            always_complete_options=False,
+            default_completer=SuppressCompleter(),
+        )
+        with core.exit_stack:
+            return core.main(args or sys.argv[1:])
+    except KeyboardInterrupt:
+        termui.UI.instance().echo(
+            rf"[error]\[Interrupted, exiting][/]",  # type: ignore[union-attr]
+            err=True,
+        )
+        sys.exit(1)
