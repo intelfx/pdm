@@ -23,4 +23,4 @@ class ListCommand(BaseCommand):
         saved_python_root = Path(saved_python).parent.parent if (saved_python := project._saved_python) else None
         for ident, venv in iter_venvs(project):
             mark = "*" if saved_python_root and saved_python_root == venv.root else "-"
-            project.core.ui.echo(f"{mark}  [success]{ident}[/]: {venv.root}")
+            project.core.ui.echo(f"{mark} [success]{ident}[/]: {venv.root}")
