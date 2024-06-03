@@ -118,14 +118,16 @@ class Backend(abc.ABC):
     ) -> Path:
         if where is not None:
             location = Path(where)
+            name = name or location.name.lower()
         elif in_project:
             location = self.project.root / ".venv"
+            name = name or self.project.root.name.lower()
         else:
             location = self.get_location(name, venv_name)
         args = (*self.pip_args(with_pip), *args)
         if prompt is not None:
             prompt = prompt.format(
-                project_name=self.project.root.name.lower() or "virtualenv",
+                project_name=name or "virtualenv",
                 python_version=self.ident,
             )
         self._ensure_clean(location, force)
