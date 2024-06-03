@@ -44,7 +44,11 @@ class CreateCommand(BaseCommand):
         )
 
     def handle(self, project: Project, options: argparse.Namespace) -> None:
-        in_project = project.config["venv.in_project"] and not options.name
+        in_project = (
+                project.config["venv.in_project"]
+                and not project.is_not_local
+                and not options.name
+        )
         backend: str = options.backend or project.config["venv.backend"]
         venv_backend = BACKENDS[backend](project, options.python)
         with project.core.ui.open_spinner(f"Creating virtualenv using [success]{backend}[/]..."):
