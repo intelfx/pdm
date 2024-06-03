@@ -20,4 +20,4 @@ class ListCommand(BaseCommand):
                 mark = "*"
             else:
                 mark = "-"
-            project.core.ui.echo(f"{mark}  [success]{ident}[/]: {venv.root}")
+            project.core.ui.echo(f"{mark} [success]{ident}[/]: {venv.root}")
