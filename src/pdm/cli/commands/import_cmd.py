@@ -97,7 +97,7 @@ class Command(BaseCommand):
         else:
             key = format
         if options is None:
-            options = argparse.Namespace(dev=False, group=None)
+            options = argparse.Namespace(dev=False, group=None, command=None)
         project_data, settings = FORMATS[key].convert(project, filename, options)
         pyproject = project.pyproject._data
 
@@ -134,8 +134,15 @@ class Command(BaseCommand):
                 project.core.ui.echo(f"The project's build dependencies have been set to {pybuildsystem['requires']}")
                 project.core.ui.echo(f"The project's build backend has been set to {pybuildsystem['build-backend']}")
             else:
+                hint = "Please manually configure [\"build-system\"] in pyproject.toml and retry"
+                # this means "our" command, i.e. `pdm import`
+                if isinstance(options.command, Command) and options.keep_backend:
+                    hint += ", or omit [primary]--keep-backend[/] to use the PDM build backend"
+                else:
+                    pass
+
                 raise PdmUsageError(
-                    "Can't create [\"build-system\"] section in pyproject.toml with selected import method, please fill it manually."
+                    f"The selected import method does not provide a build backend, aborting.\n{hint}."
                 )
 
         elif "build-backend" in buildsystem_data and "build-requires" in buildsystem_data:
