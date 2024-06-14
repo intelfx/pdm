@@ -243,8 +243,8 @@ class Command(BaseCommand):
 
         if keep_license_file:
             del data["project"]["license"]  # type: ignore[attr-defined]
-        if python_requires and python_requires != "*":
-            get_specifier(python_requires)
+        python_requires = str(get_specifier(python_requires))
+        if python_requires:
             data["project"]["requires-python"] = python_requires  # type: ignore[index]
         if description:
             data["project"]["description"] = description  # type: ignore[index]
