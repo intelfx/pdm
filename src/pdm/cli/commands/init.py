@@ -111,8 +111,9 @@ class Command(BaseCommand):
         is_dist = options.dist or bool(options.backend)
         if not is_dist and self.interactive:
             is_dist = termui.confirm(
-                "Do you want to build this project for distribution(such as wheel)?\n"
-                "If yes, it will be installed by default when running `pdm install`."
+                "Do you want to build this project for distribution or installation (such as wheel)?\n"
+                "If yes, it will be installed along its dependencies when running [success]`pdm install`[/].\n"
+                "(If no, only the dependencies will be installed.)"
             )
         build_backend: type[BuildBackend] | None = None
         python = project.python
@@ -139,12 +140,13 @@ class Command(BaseCommand):
         else:
             description = ""
             default_python_requires = f"=={python.major}.{python.minor}.*"
-        license = self.ask("License(SPDX name)", "MIT")
+        license = self.ask("License (SPDX name)", "MIT")
 
         git_user, git_email = get_user_email_from_git()
         author = self.ask("Author name", git_user)
         email = self.ask("Author email", git_email)
-        python_requires = self.ask("Python requires('*' to allow any)", default_python_requires)
+        python_requires = self.ask("Python version ([prompt.default]'*'[/] to allow any)",
+                                   default_python_requires)
 
         data = {
             "project": {
