@@ -162,9 +162,9 @@ class Command(BaseCommand):
             "tool": {"pdm": {"distribution": is_dist}},
         }
 
-        if python_requires and python_requires != "*":
-            get_specifier(python_requires)
-            data["project"]["requires-python"] = python_requires  # type: ignore[index]
+        python_requires = str(get_specifier(python_requires))
+        if python_requires:
+            data["project"]["requires-python"] = str(python_requires)  # type: ignore[index]
         if description:
             data["project"]["description"] = description  # type: ignore[index]
         if build_backend is not None:
