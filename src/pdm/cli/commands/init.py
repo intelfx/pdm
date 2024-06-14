@@ -160,8 +160,9 @@ class Command(BaseCommand):
         is_dist = options.dist or bool(options.backend) or bool(existing_settings.get("distribution", False))
         if not (options.dist or options.backend) and self.interactive:
             is_dist = termui.confirm(
-                "Do you want to build this project for distribution(such as wheel)?\n"
-                "If yes, it will be installed by default when running `pdm install`.",
+                "Do you want to build this project for distribution or installation (such as wheel)?\n"
+                "If yes, it will be installed along its dependencies when running [success]`pdm install`[/].\n"
+                "(If no, only the dependencies will be installed.)",
                 default=is_dist,
             )
         options.dist = is_dist
@@ -201,7 +202,7 @@ class Command(BaseCommand):
             default_license = existing_license.get("text") or existing_license.get("file") or "MIT"
         else:
             default_license = existing_license or "MIT"
-        license = self.ask("License(SPDX name)", options.license or default_license)
+        license = self.ask("License (SPDX name)", options.license or default_license)
 
         git_user, git_email = get_user_email_from_git()
         existing_authors = existing_project.get("authors", [])
@@ -209,7 +210,8 @@ class Command(BaseCommand):
         author = self.ask("Author name", existing_author.get("name", git_user))
         email = self.ask("Author email", existing_author.get("email", git_email))
         python_requires = self.ask(
-            "Python requires('*' to allow any)", existing_project.get("requires-python", default_python_requires)
+            "Python version ([prompt.default]'*'[/] to allow any)",
+            existing_project.get("requires-python", default_python_requires),
         )
 
         data = {

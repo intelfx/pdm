@@ -104,14 +104,15 @@ def test_init_uses_existing_pyproject_values_as_defaults(project_no_init, mocker
         "Project version": "2.1.0",
         "Project description": "Existing description",
         "Please select": 3,
-        "License(SPDX name)": "Apache-2.0",
+        "License (SPDX name)": "Apache-2.0",
         "Author name": "Existing Author",
         "Author email": "author@example.org",
-        "Python requires('*' to allow any)": ">=3.10",
+        "Python version ([prompt.default]'*'[/] to allow any)": ">=3.10",
     }
     confirm.assert_called_once_with(
-        "Do you want to build this project for distribution(such as wheel)?\n"
-        "If yes, it will be installed by default when running `pdm install`.",
+        "Do you want to build this project for distribution or installation (such as wheel)?\n"
+        "If yes, it will be installed along its dependencies when running [success]`pdm install`[/].\n"
+        "(If no, only the dependencies will be installed.)",
         default=True,
     )
 
