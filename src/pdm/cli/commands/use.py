@@ -64,10 +64,10 @@ class Command(BaseCommand):
             cached_python = PythonInfo.from_path(path)
             if not cached_python.valid:
                 project.core.ui.error(
-                    f"The last selection is corrupted. {path!r}",
+                    f"The last selection is corrupted, ignoring: {path!r}",
                 )
             elif version_matcher(cached_python):
-                project.core.ui.info("Using the last selection, add '-i' to ignore it.")
+                project.core.ui.info("Using the last selection, add [success]`-i`[/] to ignore it.")
                 return cached_python
 
         found_interpreters = list(dict.fromkeys(project.iter_interpreters(python, filter_func=version_matcher)))
@@ -76,9 +76,13 @@ class Command(BaseCommand):
             raise NoPythonVersion(f"No Python interpreter matching [success]{req}[/] is found.")
 
         if first or len(found_interpreters) == 1:
-            return found_interpreters[0]
+            py_version = found_interpreters[0]
+            project.core.ui.echo(
+                f"Using [success]{py_version.implementation}@{py_version.identifier}[/] ({py_version.path!s})"
+            )
+            return py_version
 
-        project.core.ui.echo("Please enter the Python interpreter to use")
+        project.core.ui.echo("Which Python interpreter to use?")
         for i, py_version in enumerate(found_interpreters):
             project.core.ui.echo(
                 f"{i:>2}. [success]{py_version.implementation}@{py_version.identifier}[/] ({py_version.path!s})"
