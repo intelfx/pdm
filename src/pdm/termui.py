@@ -235,6 +235,13 @@ class UI:
         rich.get_console().push_theme(theme)
         _err_console.push_theme(theme)
 
+    def get_console(self, err: bool = False) -> Console:
+        """Returns the console for stdout or stderr.
+
+        :param err: whether to return the console object for stderr
+        """
+        return _err_console if err else rich.get_console()
+
     def echo(
         self,
         message: str | RichProtocol = "",
@@ -249,7 +256,7 @@ class UI:
         :param verbosity: verbosity level, defaults to QUIET.
         """
         if self.verbosity >= verbosity:
-            console = _err_console if err else rich.get_console()
+            console = self.get_console(err=err)
             if not console.is_interactive:
                 kwargs.setdefault("crop", False)
                 kwargs.setdefault("overflow", "ignore")
