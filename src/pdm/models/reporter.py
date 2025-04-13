@@ -4,7 +4,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from rich import get_console
 from rich.live import Live
 from rich.progress import MofNCompleteColumn, Progress, SpinnerColumn, TaskProgressColumn, TimeElapsedColumn
 
@@ -55,7 +54,7 @@ class RichProgressReporter(CandidateReporter):
 class InstallationStatus:
     def __init__(self, ui: termui.UI, text: str) -> None:
         self.ui = ui
-        self.console = get_console()
+        self.console = ui.get_console(err=True)
         self._spinner = Progress(
             SpinnerColumn(termui.SPINNER),
             TimeElapsedColumn(),

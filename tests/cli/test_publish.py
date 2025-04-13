@@ -123,7 +123,7 @@ def test_publish_package_with_signature(project, uploaded, pdm):
 @pytest.mark.usefixtures("local_finder")
 def test_publish_and_build_in_one_run(fixture_project, pdm, mock_pypi):
     project = fixture_project("demo-module")
-    result = pdm(["publish", "--username=abc", "--password=123"], obj=project, strict=True).output
+    result = pdm(["publish", "--username=abc", "--password=123"], obj=project, strict=True).outputs
 
     mock_pypi.assert_called()
     assert "Uploading demo_module-0.1.0-py3-none-any.whl" in result

@@ -55,7 +55,7 @@ class LockReporter(BaseReporter):
 class RichLockReporter(LockReporter):
     def __init__(self, requirements: list[Requirement], ui: UI) -> None:
         self.ui = ui
-        self.console = get_console()
+        self.console = ui.get_console(err=True)
         self.requirements = requirements
         self.progress = Progress(
             "[progress.description]{task.description}",
@@ -72,7 +72,7 @@ class RichLockReporter(LockReporter):
             console=self.console,
         )
         self._spinner_task = self._spinner.add_task("Resolving dependencies", info="", total=1)
-        self.live = Live(self)
+        self.live = Live(self, console=self.console)
 
     @contextmanager
     def make_candidate_reporter(self, candidate: Candidate) -> Generator[CandidateReporter]:
