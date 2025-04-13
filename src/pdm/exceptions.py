@@ -7,6 +7,7 @@ from rich.text import Text
 
 if TYPE_CHECKING:
     from pdm.models.candidates import Candidate
+    from pdm.models.specifiers import PySpecSet
 
 
 def _strip(text: str) -> str:
@@ -76,6 +77,39 @@ class PDMWarning(Warning):
 
 class PackageWarning(PDMWarning):
     pass
+
+
+class PackageRequirementUnsatisfiedWarning(PackageWarning):
+    def __init__(
+            self,
+            candidate: 'Candidate',
+            project_requirement: 'PySpecSet',
+            suggested_requirement: 'PySpecSet',
+    ):
+        full_msg = (
+            f"Skipping [primary]{candidate.name}@{candidate.version}[/] because it requires "
+            f"[primary]{self.python_description(candidate.requires_python)}[/] but the project claims to work with "
+            f"[primary]{self.python_description(project_requirement)}[/]. Instead, another version of "
+            f"[primary]{candidate.name}[/] that supports [primary]{self.python_description(project_requirement)}[/] will "
+            f"be used.\nIf you want to install [primary]{candidate.name}@{candidate.version}[/], "
+            "narrow down the `requires-python` range to include this version. "
+            f'For example, [primary]"{self.python_specifier(suggested_requirement)}"[/] should work.'
+        )
+        terse_msg = (
+            f"Skipping [primary]{candidate.name}@{candidate.version}[/]: "
+            f"package wants [primary]{self.python_description(candidate.requires_python)}[/], "
+            f"project needs [primary]{self.python_description(project_requirement)}[/]\n"
+            f"(to use this version, consider updating project to [primary]{self.python_specifier(suggested_requirement)}[/])"
+        )
+        super().__init__(full_msg, terse_msg)
+
+    @staticmethod
+    def python_description(spec: 'PySpecSet | str') -> str:
+        return f"Python{spec}" if spec else "all Python versions"
+
+    @staticmethod
+    def python_specifier(spec: 'PySpecSet | str') -> str:
+        return str(spec) if spec else "*"
 
 
 class PDMDeprecationWarning(PDMWarning, DeprecationWarning):
