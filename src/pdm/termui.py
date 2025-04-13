@@ -6,6 +6,8 @@ import logging
 import os
 import tempfile
 import warnings
+import functools
+from collections import abc
 from typing import IO, TYPE_CHECKING
 
 import rich
@@ -22,7 +24,7 @@ from pdm.utils import strtobool
 
 if TYPE_CHECKING:
     from collections.abc import Iterator, Sequence
-    from typing import Any
+    from typing import Any, TextIO
 
     from pdm._types import RichProtocol, Spinner, SpinnerT
 
@@ -223,6 +225,11 @@ class UI:
             self.exit_stack.enter_context(warnings.catch_warnings())
             warnings.simplefilter("ignore", PDMWarning, append=True)
             warnings.simplefilter("ignore", FutureWarning, append=True)
+        elif self.verbosity in (Verbosity.NORMAL, Verbosity.DETAIL):
+            self.exit_stack.enter_context(warnings.catch_warnings())
+            warnings.showwarning = self._get_warning_handler(
+                terse=(self.verbosity < Verbosity.DETAIL),
+            )
 
     def set_theme(self, theme: Theme) -> None:
         """set theme for rich console
@@ -390,6 +397,27 @@ class UI:
         else:
             self.echo(rf"[error]\[{kind}][/]", err=True)
 
+    def print_warning(self, kind: str, message: Warning | str, *, terse: bool) -> None:
+        """Log a warning to stderr.
+
+        If invoked on a `PDMWarning` object, the rich text contained in the warning
+        will be rendered. Otherwise, the default string representation will be printed.
+
+        If `terse` is true, the warning will be printed as "user-facing", i.e., the
+        warning type will be omitted and a shorter message will be printed.
+
+        :param kind: textual representation of the warning type
+        :param message: contents of the warning, or the warning object
+        :param terse: whether the warning is user-facing
+        """
+        if isinstance(message, PDMWarning):
+            if terse and message.terse():
+                self.echo(message.terse(), prefix="[warning]WARNING:[/] ", err=True)
+            else:
+                self.echo(rf"[warning]\[{kind}]:[/] {message.full()}", err=True)
+        else:
+            self.echo(rf"[warning]\[{kind}]:[/] {message}", err=True)
+
     def _clean_logs(self) -> None:
         import time
         from pathlib import Path
@@ -401,3 +429,22 @@ class UI:
                 continue
             if file.stat().st_ctime < time.time() - 7 * 24 * 60 * 60:  # 7 days
                 file.unlink()
+
+    def _get_warning_handler(self, terse: bool) -> abc.Callable[..., None]:
+        orig = warnings.showwarning
+        # HACK: do not override showwarning() under tests to avoid breaking recwarn
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            return orig
+        def _showwarning(
+                message: Warning | str,
+                category: type[Warning],
+                filename: str,
+                lineno: int,
+                file: TextIO | None = None,
+                line: str | None = None,
+        ) -> None:
+            if isinstance(message, PDMWarning):
+                self.print_warning(message.kind(), message, terse=terse)
+            else:
+                orig(message, category, filename, lineno, file, line)
+        return _showwarning
