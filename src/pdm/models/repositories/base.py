@@ -9,7 +9,10 @@ from typing import TYPE_CHECKING, Generator, NamedTuple, TypeVar, cast
 
 from pdm import termui
 from pdm._types import NotSet, NotSetType
-from pdm.exceptions import CandidateInfoNotFound, PackageWarning
+from pdm.exceptions import (
+    CandidateInfoNotFound,
+    PackageRequirementUnsatisfiedWarning
+)
 from pdm.models.candidates import Candidate
 from pdm.models.markers import EnvSpec
 from pdm.models.requirements import Requirement, parse_line
@@ -190,14 +193,11 @@ class BaseRepository:
                     if working_requires_python.is_empty():  # pragma: no cover
                         continue
                     warnings.warn(
-                        f"Skipping {candidate.name}@{candidate.version} because it requires "
-                        f"{python_specifier(candidate.requires_python)} but the lock targets to work with "
-                        f"{python_specifier(env_requires_python)}. Instead, another version of "
-                        f"{candidate.name} that supports {python_specifier(env_requires_python)} will "
-                        f"be used.\nIf you want to install {candidate.name}@{candidate.version}, "
-                        "narrow down the `requires-python` range to "
-                        f'include this version. For example, "{working_requires_python}" should work.',
-                        PackageWarning,
+                        PackageRequirementUnsatisfiedWarning(
+                            candidate,
+                            env_requires_python,
+                            working_requires_python,
+                        ),
                         stacklevel=4,
                     )
                     self.has_warnings = True
