@@ -243,6 +243,7 @@ class UI:
         self,
         message: str | RichProtocol = "",
         *,
+        prefix: str | RichProtocol = None,
         err: bool = False,
         verbosity: Verbosity = Verbosity.QUIET,
         **kwargs: Any,
@@ -250,6 +251,9 @@ class UI:
         """print message using rich console
 
         :param message: message with rich markup, defaults to "".
+        :param prefix: if not None, prepended onto message and causes
+                       the subsequent lines of messages to be indented
+                       by the prefix length.
         :param err: if true print to stderr, defaults to False.
         :param verbosity: verbosity level, defaults to QUIET.
         """
@@ -258,6 +262,11 @@ class UI:
             if not console.is_interactive:
                 kwargs.setdefault("crop", False)
                 kwargs.setdefault("overflow", "ignore")
+            if prefix:
+                if '\n' in message:
+                    m = console.measure(prefix)
+                    message = message.replace('\n', '\n' + ' ' * m.maximum)
+                message = prefix + message
             console.print(message, **kwargs)
 
     def display_columns(self, rows: Sequence[Sequence[str]], header: list[str] | None = None) -> None:
