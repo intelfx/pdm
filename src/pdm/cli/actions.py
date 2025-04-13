@@ -159,9 +159,9 @@ def do_lock(
                 if project.enable_write_lockfile:
                     reporter.update(f"{termui.Emoji.LOCK} Lock successful.", info="", completed=1)
                 project.lockfile.format_lockfile(result_repo, groups=groups, strategy=lock_strategy)
-                project.write_lockfile(write=not dry_run)
-                hooks.try_emit("post_lock", resolution=result_repo.all_candidates, dry_run=dry_run)
 
+    project.write_lockfile(write=not dry_run)
+    hooks.try_emit("post_lock", resolution=result_repo.all_candidates, dry_run=dry_run)
     return result_repo.all_candidates
 
 
