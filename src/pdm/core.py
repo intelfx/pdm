@@ -281,10 +281,7 @@ class Core:
             should_show_tb = not isinstance(err, PdmUsageError) or self.ui.verbosity > termui.Verbosity.DETAIL
             if self.ui.verbosity > termui.Verbosity.NORMAL and should_show_tb:
                 raise cast(Exception, err).with_traceback(traceback) from None
-            self.ui.echo(
-                rf"[error]\[{etype.__name__}][/]: {err}",  # type: ignore[union-attr]
-                err=True,
-            )
+            self.ui.print_exception(etype.__name__, err)
             if should_show_tb:
                 self.ui.warn("Add '-v' to see the detailed traceback", verbosity=termui.Verbosity.NORMAL)
             sys.exit(1)
@@ -411,8 +408,5 @@ def main(args: list[str] | None = None) -> None:
         with core.exit_stack:
             return core.main(args or sys.argv[1:])
     except KeyboardInterrupt:
-        termui.UI.instance().echo(
-            rf"[error]\[Interrupted, exiting][/]",  # type: ignore[union-attr]
-            err=True,
-        )
+        termui.UI.instance().print_exception("Interrupted, exiting")
         sys.exit(1)
