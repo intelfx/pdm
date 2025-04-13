@@ -408,6 +408,9 @@ class UI:
 
     def _get_warning_handler(self, terse: bool) -> abc.Callable[..., None]:
         orig = warnings.showwarning
+        # HACK: do not override showwarning() under tests to avoid breaking recwarn
+        if "PYTEST_CURRENT_TEST" in os.environ:
+            return orig
         def _showwarning(
                 message: Warning | str,
                 category: type[Warning],
