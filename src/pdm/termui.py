@@ -379,6 +379,17 @@ class UI:
         """Print a message to stdout."""
         self.echo(f"[error]ERROR:[/] {message}", err=True, verbosity=verbosity)
 
+    def print_exception(self, kind: str, message: Exception | str | None = None) -> None:
+        """Log an exception to stderr.
+
+        :param kind: textual representation of the exception type
+        :param message: optional contents of the exception
+        """
+        if message is not None:
+            self.echo(rf"[error]\[{kind}][/]: {message}", err=True)
+        else:
+            self.echo(rf"[error]\[{kind}][/]", err=True)
+
     def _clean_logs(self) -> None:
         import time
         from pathlib import Path
