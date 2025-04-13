@@ -3,8 +3,19 @@ from __future__ import annotations
 import warnings
 from typing import TYPE_CHECKING
 
+from rich.text import Text
+
 if TYPE_CHECKING:
     from pdm.models.candidates import Candidate
+
+
+def _strip(text: str) -> str:
+    """Return text with all markup stripped.
+
+    :param text: message with rich markup
+    :return: copy of message without any markup
+    """
+    return Text.from_markup(text).plain
 
 
 class PdmException(Exception):
@@ -49,7 +60,8 @@ class CandidateInfoNotFound(PdmException):
 class PDMWarning(Warning):
     def __init__(self, full: str, terse: str | None = None):
         self._terse = terse
-        super().__init__(full)
+        self._full = full
+        super().__init__(_strip(full))
 
     @classmethod
     def kind(cls) -> str:
@@ -59,7 +71,7 @@ class PDMWarning(Warning):
         return self._terse
 
     def full(self) -> str:
-        return str(self)
+        return self._full
 
 
 class PackageWarning(PDMWarning):
