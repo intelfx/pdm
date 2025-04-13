@@ -220,6 +220,7 @@ class UI:
     def echo(
         self,
         message: str | RichProtocol = "",
+        *,
         err: bool = False,
         verbosity: Verbosity = Verbosity.QUIET,
         **kwargs: Any,
