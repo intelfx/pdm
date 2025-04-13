@@ -47,7 +47,19 @@ class CandidateInfoNotFound(PdmException):
 
 
 class PDMWarning(Warning):
-    pass
+    def __init__(self, full: str, terse: str | None = None):
+        self._terse = terse
+        super().__init__(full)
+
+    @classmethod
+    def kind(cls) -> str:
+        return cls.__name__
+
+    def terse(self) -> str:
+        return self._terse
+
+    def full(self) -> str:
+        return str(self)
 
 
 class PackageWarning(PDMWarning):
