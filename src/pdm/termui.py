@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 import rich
 from rich.box import ROUNDED
 from rich.console import Console
+from rich.status import Status
 from rich.progress import Progress, ProgressColumn
 from rich.prompt import Confirm, IntPrompt, Prompt
 from rich.table import Table
@@ -312,11 +313,21 @@ class UI:
         if self.verbosity >= Verbosity.DETAIL or not is_interactive():
             return DummySpinner(title)
         else:
-            return _err_console.status(title, spinner=SPINNER, spinner_style="primary")
+            return Status(
+                title,
+                spinner=SPINNER,
+                spinner_style="primary",
+                console=_err_console,
+            )
 
     def make_progress(self, *columns: str | ProgressColumn, **kwargs: Any) -> Progress:
         """create a progress instance for indented spinners"""
-        return Progress(*columns, disable=self.verbosity >= Verbosity.DETAIL, **kwargs)
+        return Progress(
+            *columns,
+            disable=self.verbosity >= Verbosity.DETAIL,
+            console=_err_console,
+            **kwargs,
+        )
 
     def info(self, message: str, verbosity: Verbosity = Verbosity.NORMAL) -> None:
         """Print a message to stdout."""
