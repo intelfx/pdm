@@ -122,7 +122,10 @@ class Backend(abc.ABC):
         with_pip: bool = False,
         venv_name: str | None = None,
     ) -> Path:
-        location = (self.project.root / ".venv") if in_project else self.get_location(name, venv_name)
+        if in_project:
+            location = self.project.root / ".venv"
+        else:
+            location = self.get_location(name, venv_name)
         args = (*self.pip_args(with_pip), *args)
         if prompt is not None:
             prompt = prompt.format(
